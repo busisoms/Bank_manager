@@ -59,8 +59,8 @@ def start():
         print("Please enter one of the given options")
         
 
-# if __name__ == "__main__":
-#     start()
+if __name__ == "__main__":
+    start()
 
-df = pd.read_csv("accounts.csv")
-print(df.to_string())
+# df = pd.read_csv("accounts.csv")
+# print(df.to_string())
