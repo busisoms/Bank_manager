@@ -1,5 +1,5 @@
 import random as r
-import pandas as pd
+import json
 import os
 
 """
@@ -11,84 +11,201 @@ features:
     - deposit cash
     - withdrew cash
     - display_details
-    - load from csv
-    - save to csv
+    - load user
+    - save user
 """
 
+class Details:
+    def __init__(self, account_holder, surname, email, password, account_number=None):
+        self.account_holder = account_holder
+        self.surname = surname
+        self.account_number = account_number if account_number is not None else 1620000 + r.randint(10000, 99999)
+        self.email = email
+        self.password = str(password)
+
+    def display(self):
+        print("Name:", self.account_holder)
+        print("Surname:", self.surname)
+        print("Email:", self.email)
+        print()
+
+    def __str__(self):
+        return (
+                f'Name: {self.account_holder}\n'
+                f'Surname: {self.surname}\n'
+                f'Account Number: {self.account_number}\n'
+                f'Email: {self.email}\n'
+                f'Password: {self.password}\n'
+                + "_" * 30 + "\n"
+                )
+
+    def save_to_file(self, filename="details.txt"):
+        try:
+            with open(filename, "a") as file:
+                file.write(self.__str__())
+        except Exception as e:
+            print(f'An error has occurred while saving file: {e}')
+
+    @staticmethod
+    def read_from_file(filename="details.txt"):
+        try:
+            with open(filename, "r") as file:
+                contents = file.read()
+                return contents
+        except FileNotFoundError:
+            print(f'The file {filename} does not exist.')
+            return None
+        except Exception as e:
+            print(f'An error occurred while reading from file: {e}')
+            return None
+
 class Account:
-    accounts = {"acc_number":[], 
-                "acc_holder":[], 
-                "current_balance":[]}
-    file = "accounts.csv"
-    
-    # Constructor
-    def __init__(self, acc_holder, balance=0, acc_number=None):
-        self.acc_holder = acc_holder
-        self.balance = balance
-        self.acc_number = acc_number if acc_number is not None else 7500000 + r.randint(10**4, 10**5 - 1)
+    accounts = {
+            'email': [],
+            'account_holder': [],
+            'account_number': [],
+            'balance': []
+            }
 
-        
-    
-    # Check Balance
-    def check_balance(self):
-        if self.balance < 0:
-            self.balance = 0
-        return f"Balance: R {self.balance}"
-    
-    # Deposit into the account
-    def deposit(self, amount):
-        if amount > 0:
-            self.balance += amount
-            print("Balance updated")
+    def __init__(self, details=None, balance=0):
+        if isinstance(details, Details):
+            self.account_holder = details.account_holder
+            self.account_number = details.account_number
+            self.surname = details.surname
+            self.email = details.email
         else:
-            print("Invalid deposit amount")
+            raise ValueError("The 'details' argument must be an instance of the Details class.")
 
-    # Withdraw from account
+        self.balance = balance
+
+
+    def deposit(self, amount):
+        self.balance += amount
+        print(f"Deposited {amount}. New balance is {self.balance}.")
+
+
     def withdraw(self, amount):
-        if amount <= 0:
-            print(f"Can't withdraw R {amount} \nDid you mean R {abs(amount)}")
-        elif amount > self.balance:
-            print("Insufficient funds")
+        if amount > self.balance:
+            print("Insufficient balance.")
         else:
             self.balance -= amount
-            print("Balance updated")
+            print(f"Withdrew {amount}. New balance is {self.balance}.")
 
-        
-    # Display Account details
-    def display_acc(self):
-        print("Your details are as follows: \n")
-        print(f"Account holder: {self.acc_holder}")
-        print(f"Account Number: {self.acc_number}")
-        print(f"Balance R {self.balance}")
-        
-    # save to csv
-    def save(self):
-        # Append the new account details to the accounts dictionary
-        Account.accounts["acc_number"].append(self.acc_number)
-        Account.accounts["acc_holder"].append(self.acc_holder)
-        Account.accounts["current_balance"].append(self.balance)
 
-        # Create a dataframe and save to csv
-        df = pd.DataFrame(Account.accounts)
-        if os.path.exists(Account.file):
-            df.to_csv(Account.file, mode='a', index=False, header=False)
-        else:
-            df.to_csv(Account.file, index=False)
-
-    # Statement for the user/client
-    def statement(self):
-        pass
+    def display_account_details(self):
+        print(f"Account Holder: {self.account_holder} {self.surname}")
+        print(f"Account Number: {self.account_number}")
+        print(f"Balance: {self.balance}")
     
-    # load from csv
-    @classmethod
-    def load(cls, acc):
-        df = pd.read_csv(Account.file)
-        find_account = df[df["acc_number"] == acc]
-        if not find_account.empty:
-            acc_number = int(find_account["acc_number"].iloc[0])
-            acc_holder = find_account["acc_holder"].iloc[0]
-            current_balance = float(find_account["current_balance"].iloc[0])
-            return cls(acc_holder, current_balance, acc_number)
+    def check_balance(self):
+        amount = self.balance
+        return f"Your current balance is: R {round(float(amount), 2)}"
+
+
+    # Update only the balance if the user exists in the system
+    def update(self, balance, email):
+        try:
+            with open('accounts.json', 'r') as f:
+                content = f.read()
+                data = json.loads(content)
+        except FileNotFoundError:
+            print("File not found")
+
+        saved_emails = data['email']
+        for i in range(len(saved_emails)):
+            if saved_emails[i] == email:
+                data['balance'][i] = balance
+
+        # Save to Json
+        with open('accounts.json', 'w') as f:
+            save = json.dumps(data)
+            f.write(save)
+
+
+    # add new users to json with user already
+    def add(self):
+        try:
+            with open('accounts.json', 'r') as f:
+                content = f.read()
+                data = json.loads(content)
+        except FileNotFoundError:
+            print("File not found")
+
+        # save user's details
+        data['email'].append(self.email)
+        data['account_holder'].append([self.account_holder, self.surname])
+        data['account_number'].append(self.account_number)
+        data['balance'].append(self.balance)
+
+        # Save new user to Json
+        with open('accounts.json', 'w') as f:
+            save = json.dumps(data)
+            f.write(save)
+
+
+    @staticmethod
+    def exists(email):
+        try:
+            with open('accounts.json', 'r') as f:
+                content = f.read()
+                data = json.loads(content)
+        except FileNotFoundError:
+            return False
+        
+        saved_emails = data['email']
+        for i in range(len(saved_emails)):
+            if saved_emails[i] == email:
+                return True
+
+
+    def save_account(self):
+        # save user's details
+        Account.accounts['email'].append(self.email)
+        Account.accounts['account_holder'].append([self.account_holder, self.surname])
+        Account.accounts['account_number'].append(self.account_number)
+        Account.accounts['balance'].append(self.balance)
+
+        file_exists = os.path.exists('accounts.json')
+
+        if file_exists:
+            # if the user exists in the system update balance
+            if Account.exists(self.email):
+                print("welcome back dude")
+                self.update(self.balance, self.email)
+            elif  os.stat('accounts.json').st_size > 0:
+                print("def not empty")
+                self.add()      
         else:
-            print(f"Account {acc} doesn't exist")
-            return None
+            print("can't find anyone")
+            # Save new user to Json
+            with open('accounts.json', 'w') as f:
+                save = json.dumps(Account.accounts)
+                f.write(save)
+    
+
+
+
+    # load from json
+    @classmethod
+    def load_account(cls, password, email):
+        try:
+            with open('accounts.json', 'r') as f:
+                content = f.read()
+                data = json.loads(content)
+        except FileNotFoundError:
+            print("File not found")
+
+        emails = data['email']
+        for i in range(len(emails)):
+            if emails[i] == email:
+                name = data['account_holder'][i][0]
+                surname = data['account_holder'][i][1]
+                acc_number = data['account_number'][i]
+                balance = data['balance'][i]
+
+        user_details = Details(name, surname, email, password, acc_number)
+        return cls(user_details, balance)
+
+
+
+
