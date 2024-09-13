@@ -2,6 +2,7 @@ from Bank.basic_account import Account
 from Bank.client_details import Client
 from Bank.verification import *
 from Bank.utilities import *
+import maskpass
 
 
 def create_account():
@@ -23,7 +24,7 @@ def create_account():
             animate_loading('Almost there......')
             print(f"\nAccount created successfully!\nWelcome {user_name} \n")
             break
-        else: print("Password doesn't match")  
+        else: animate_loading('Loading.....')  
     menu(user_account)
     return
 
@@ -39,7 +40,7 @@ def starting_balance(user):
 
 def sign_in():
     email = validate_email()
-    password = validate_password()
+    password = maskpass.askpass(prompt="Enter password: ", mask="*")
     animate_loading('signing in......')
 
     user = Client.find_user(email)
@@ -56,6 +57,5 @@ def sign_in():
         else:
             animate_loading('Loading........')
             user_not_found(create_account, sign_in)
-
-    user_not_found(create_account, sign_in)
+    else: user_not_found(create_account, sign_in)
     return

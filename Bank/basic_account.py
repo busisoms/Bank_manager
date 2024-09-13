@@ -57,7 +57,7 @@ class Account:
         """
         
         self.balance += amount
-        print(f"Deposited {amount}. New balance is {self.balance}.")
+        print(f"Deposited {amount}. New balance is {self.balance}.\n")
 
 
     def withdraw(self, amount):
@@ -74,21 +74,21 @@ class Account:
             print("Insufficient balance.")
         else:
             self.balance -= amount
-            print(f"Withdrew {amount}. New balance is {self.balance}.")
+            print(f"Withdrew {amount}. New balance is {self.balance}.\n")
 
 
     def display_account_details(self):
         """ Prints the users details. """
-
-        print(str(self.user))
-        print(f"Current balance is: {self.balance}")
+        
+        print("\n", str(self.user))
+        print(f"Current balance is: {self.balance}\n")
     
 
     def check_balance(self):
         """ Returns string with user's current balance. """
 
         amount = self.balance
-        return f"Your current balance is: R {round(float(amount), 2)}"
+        return f"Your current balance is: R {round(float(amount), 2)}\n"
 
 
     def update(self, balance, email):
