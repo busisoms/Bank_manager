@@ -142,6 +142,7 @@ class Account:
         for i in range(len(saved_emails)):
             if saved_emails[i] == email:
                 data['balance'][i] = balance
+                data['transactions'][i] = Account.account_transactions
 
         # Save to Json
         with open(filename, 'w') as f:
