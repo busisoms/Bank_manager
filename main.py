@@ -1,8 +1,7 @@
 from Bank.auth_system import sign_in, create_account
 
 
-print("Welcome To The Bank Account Manager.\n"
-        "Do you have an account?")
+print("Welcome To The Bank Account Manager.\n")
 print("1.Sign in \n2.Sign up\n")
 
 while True:

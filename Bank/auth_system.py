@@ -16,7 +16,7 @@ def create_account():
         confirm_pass = verify_password(password)
         if confirm_pass:
             animate_loading('Confirming password.......')
-            # Create instances of Details and Account and save user
+            # Create instances of Client and Account and save user info
             client = Client(user_name, user_surname, email, password)
             save_user_info(client)
             user_account = Account(client)
@@ -35,7 +35,9 @@ def starting_balance(user):
         if amount <= 19:
             print("Deposit amount has to be above R10.")
         else:
-            user.deposit(amount)
+            deposit = user.deposit(amount)
+            if deposit:
+                user.track('Starting Balance', amount)
             return
 
 def sign_in():

@@ -4,7 +4,7 @@ import time
 
 def animate_loading(message):
     n = 10
-    push_out = (len(message) + 1) * '.'
+    push_out = (len(message) + 1) * '-'
     while n > 0:
         for c in ['|', '/', '-', '\\']:
             sys.stdout.write(f'\r{message} ' + c)
@@ -17,6 +17,7 @@ def animate_loading(message):
 def save_user_info(client):
     client.save_user()
     client.save_to_file()
+
 
 def user_not_found(func1, func2):
     print("\nNo account found with provided details. \n"
@@ -36,6 +37,7 @@ def user_not_found(func1, func2):
     else:
         print("Invalid option. Please enter 1 or 2")
 
+
 def menu(account):
     while True:
         print('Bank Account Manager \n'
@@ -43,21 +45,33 @@ def menu(account):
                 "2. Withdraw.\n"
                 "3. Display Account details.\n"
                 "4. Check Balance\n"
-                "5. Exit.\n")
+                "5. Transaction History\n"
+                "6. Exit.\n")
 
         option = input("Choose an option: ")
         match option:
             case "1":
                 amount = int(input("Enter amount: "))
-                account.deposit(amount)
+                deposit = account.deposit(amount)
+                if deposit:
+                    account.track('deposit', amount)
+
             case "2":
                 amount = int(input("Enter amount: "))
-                account.withdraw(amount)
+                withdraw = account.withdraw(amount)
+                if withdraw:
+                    account.track('withdraw', amount)
+
             case "3":
                 account.display_account_details()
+
             case "4":
                 print(account.check_balance())
+            
             case "5":
+                account.transaction_history()
+
+            case "6":
                 account.save_account()
                 break
             case _:

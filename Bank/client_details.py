@@ -112,7 +112,7 @@ class Client:
     def save_user(self):
         """ Saves confidencial user info to json. """
 
-        filename = 'user.json'
+        filename = '.user.json'
         users = [{self.get_email():[self.account_number, self.get_pass()]}]
         file_exists = os.path.exists(filename)
 
@@ -160,14 +160,14 @@ class Client:
         Returns user info or None
         """
 
-        filename = 'user.json'
+        filename = '.user.json'
         try:
             with open(filename, "r") as file:
                 for line in file:
                     users = json.loads(line)
 
         except FileNotFoundError:
-            print(f'The file {filename} does not exist.')
+            print(f'User {email} does not exist.')
             return None
         
         except Exception as e:

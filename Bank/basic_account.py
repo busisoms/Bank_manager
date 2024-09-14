@@ -1,6 +1,10 @@
 import json
 import os
 from Bank.client_details import Client
+from datetime import date
+from tabulate import tabulate
+
+
 
 class Account:
     """
@@ -20,9 +24,10 @@ class Account:
     accounts = {'email': [],
                 'account_holder': [],
                 'account_number': [],
-                'balance': []
+                'balance': [],
+                'transactions': []
                 }
-
+    account_transactions = []
 
     def __init__(self, user, balance=0):
         """
@@ -55,9 +60,13 @@ class Account:
 
         Prints amount deposited and the updated balance.
         """
+        if amount < 0:
+            print("Can not deposit a negative value.\n")
+            return False
         
         self.balance += amount
         print(f"Deposited {amount}. New balance is {self.balance}.\n")
+        return True
 
 
     def withdraw(self, amount):
@@ -69,18 +78,23 @@ class Account:
         
         Prints withdran amount and updated balance.
         """
-
+        if amount < 0:
+            print("Can not deposit a negative value.\n")
+            return False
+        
         if amount > self.balance:
-            print("Insufficient balance.")
-        else:
-            self.balance -= amount
-            print(f"Withdrew {amount}. New balance is {self.balance}.\n")
+            print("Insufficient balance.\n")
+            return False
+        
+        self.balance -= amount
+        print(f"Withdrew {amount}. New balance is {self.balance}.\n")
+        return True
 
 
     def display_account_details(self):
         """ Prints the users details. """
         
-        print("\n", str(self.user))
+        print("\n",str(self.user))
         print(f"Current balance is: {self.balance}\n")
     
 
@@ -89,6 +103,20 @@ class Account:
 
         amount = self.balance
         return f"Your current balance is: R {round(float(amount), 2)}\n"
+    
+    def track(self, details, amount):
+        d = date.today()
+        if details == 'withdraw':
+            amount *= -1
+        transaction = [str(d), details, amount, self.balance]
+        Account.account_transactions.append(transaction)
+        return
+    
+
+    def transaction_history(self):
+        history = Account.account_transactions
+        headers = ["Date ", 'Details', 'Transaction', 'Balance']
+        print(f'\n\n{tabulate(history, headers=headers)}\n')
 
 
     def update(self, balance, email):
@@ -102,9 +130,9 @@ class Account:
 
         Updates the balance of an already existing client.
         """
-
+        filename = '.accounts.json'
         try:
-            with open('accounts.json', 'r') as f:
+            with open(filename, 'r') as f:
                 content = f.read()
                 data = json.loads(content)
         except FileNotFoundError:
@@ -116,15 +144,16 @@ class Account:
                 data['balance'][i] = balance
 
         # Save to Json
-        with open('accounts.json', 'w') as f:
+        with open(filename, 'w') as f:
             save = json.dumps(data)
             f.write(save)
 
 
     def add(self):
         """ Add new users the users file if file not empty. """
+        filename = '.accounts.json'
         try:
-            with open('accounts.json', 'r') as f:
+            with open(filename, 'r') as f:
                 content = f.read()
                 data = json.loads(content)
         except FileNotFoundError:
@@ -135,9 +164,10 @@ class Account:
         data['account_holder'].append(self.account_holder)
         data['account_number'].append(self.account_number)
         data['balance'].append(self.balance)
+        data['transactions'].append(Account.account_transactions)
 
         # Save new user to Json
-        with open('accounts.json', 'w') as f:
+        with open(filename, 'w') as f:
             save = json.dumps(data)
             f.write(save)
 
@@ -153,8 +183,9 @@ class Account:
         
         Checks whether the user is already in the system.
         """
+        filename = '.accounts.json'
         try:
-            with open('accounts.json', 'r') as f:
+            with open(filename, 'r') as f:
                 content = f.read()
                 data = json.loads(content)
         except FileNotFoundError:
@@ -173,18 +204,20 @@ class Account:
         Account.accounts['account_holder'].append(self.account_holder)
         Account.accounts['account_number'].append(self.account_number)
         Account.accounts['balance'].append(self.balance)
+        Account.accounts['transactions'].append(Account.account_transactions)
 
-        file_exists = os.path.exists('accounts.json')
+        filename = '.accounts.json'
+        file_exists = os.path.exists(filename)
 
         if file_exists:
             # if the user exists in the system update balance
             if Account.exists(self.email):
                 self.update(self.balance, self.email)
-            elif  os.stat('accounts.json').st_size > 0:
+            elif  os.stat(filename).st_size > 0:
                 self.add()      
         else:
             # Save new user to Json
-            with open('accounts.json', 'w') as f:
+            with open(filename, 'w') as f:
                 save = json.dumps(Account.accounts)
                 f.write(save)
     
@@ -203,8 +236,9 @@ class Account:
         
         Returns an instance of Account class for an existing client
         """
+        filename = '.accounts.json'
         try:
-            with open('accounts.json', 'r') as f:
+            with open(filename, 'r') as f:
                 content = f.read()
                 data = json.loads(content)
         except FileNotFoundError:
@@ -216,6 +250,10 @@ class Account:
                 name, surname = data['account_holder'][i].split()
                 acc_number = data['account_number'][i]
                 balance = data['balance'][i]
+                history = data['transactions'][i]
+
+        for item in history:
+            Account.account_transactions.append(item)
 
         user = Client(name, surname, email, password, acc_number)
         return cls(user, balance)
