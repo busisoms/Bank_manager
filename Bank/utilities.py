@@ -43,35 +43,62 @@ def menu(account):
         print('Bank Account Manager \n'
                 "1. Deposit.\n"
                 "2. Withdraw.\n"
-                "3. Display Account details.\n"
-                "4. Check Balance\n"
-                "5. Transaction History\n"
-                "6. Exit.\n")
+                "3. Pay.\n"
+                "4. Display Account details.\n"
+                "5. Check Balance.\n"
+                "6. Transaction History.\n"
+                "7. Exit.\n")
 
         option = input("Choose an option: ")
         match option:
             case "1":
-                amount = int(input("Enter amount: "))
-                deposit = account.deposit(amount)
+                try:
+                    amount = int(input("Enter amount: "))
+                    deposit = account.deposit(amount)
+                except ValueError:
+                    print("Enter a vaild option\n")
+                    deposit = False
+                
                 if deposit:
                     account.track('deposit', amount)
+                else: continue
 
             case "2":
-                amount = int(input("Enter amount: "))
-                withdraw = account.withdraw(amount)
+                try:
+                    amount = int(input("Enter amount: "))
+                    withdraw = account.withdraw(amount)
+                except ValueError:
+                    print("Enter a vaild option\n")
+                    withdraw = False
+
                 if withdraw:
                     account.track('withdraw', amount)
+                else: continue
 
             case "3":
-                account.display_account_details()
+                try:
+                    account_number = int(input("Enter recipient's account number: "))
+                    amount = int(input("Enter amount: "))
+                    pay = account.pay(account_number, amount)
+                except ValueError:
+                    print("Enter a vaild option")
+                    pay = False
+
+                if pay:
+                    detail = f'payment to {account_number}'
+                    account.track(detail, amount)
+                else: continue
 
             case "4":
+                account.display_account_details()
+
+            case "5":
                 print(account.check_balance())
             
-            case "5":
+            case "6":
                 account.transaction_history()
 
-            case "6":
+            case "7":
                 account.save_account()
                 break
             case _:

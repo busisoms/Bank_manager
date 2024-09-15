@@ -21,6 +21,7 @@ class Account:
     --------
     - 
     """
+    
     accounts = {'email': [],
                 'account_holder': [],
                 'account_number': [],
@@ -60,6 +61,7 @@ class Account:
 
         Prints amount deposited and the updated balance.
         """
+        
         if amount < 0:
             print("Can not deposit a negative value.\n")
             return False
@@ -78,6 +80,7 @@ class Account:
         
         Prints withdran amount and updated balance.
         """
+
         if amount < 0:
             print("Can not deposit a negative value.\n")
             return False
@@ -91,11 +94,51 @@ class Account:
         return True
 
 
+    def pay(self, account_number, amount):
+        filename = '.accounts.json'
+        
+        if amount > self.balance:
+            print("Insufficient balance.\n")
+            return False
+        
+        if amount < 0:
+            print("Amount can not be a negative value.\n")
+            return False
+        
+        try: 
+            with open(filename, 'r') as file:
+                content = file.read()
+                data = json.loads(content)
+        except FileNotFoundError:
+            print("Error: file not found")
+            return False
+        
+        saved_account = data['account_number']
+        d = date.today()
+        for i in range(len(saved_account)):
+
+            if saved_account[i] == account_number:
+                details = f'payment from {account_number}'
+                print(f"\nSending R {amount} to {data['account_holder'][i]} \nwith account_number: {account_number}\n")
+                data['balance'][i] += amount
+                self.balance -= amount
+                transaction = [str(d), details, amount, data['balance'][i]]
+                data['transactions'][i].append(transaction)
+
+                with open(filename, 'w') as f:
+                    save = json.dumps(data)
+                    f.write(save)
+                return True
+            
+        print(f'Account_number {account_number} not found') 
+        return False
+
+        
     def display_account_details(self):
         """ Prints the users details. """
         
-        print("\n",str(self.user))
-        print(f"Current balance is: {self.balance}\n")
+        print(f'\n{str(self.user)}')
+        print(f"Current balance is: R {self.balance}\n")
     
 
     def check_balance(self):
@@ -104,10 +147,15 @@ class Account:
         amount = self.balance
         return f"Your current balance is: R {round(float(amount), 2)}\n"
     
+
     def track(self, details, amount):
         d = date.today()
         if details == 'withdraw':
             amount *= -1
+
+        if details.startswith('payment to'):
+            amount *= -1
+
         transaction = [str(d), details, amount, self.balance]
         Account.account_transactions.append(transaction)
         return
@@ -258,4 +306,3 @@ class Account:
 
         user = Client(name, surname, email, password, acc_number)
         return cls(user, balance)
-
